@@ -8,7 +8,6 @@ from PIL import Image
 st.set_page_config(layout="wide")
 st.title("🧭 Labirinto com BFS e DFS - Comparação")
 
-
 # Configurações
 HEIGHT, WIDTH = 25, 25
 WHITE = [255, 255, 255]
@@ -29,6 +28,12 @@ if "maze" not in st.session_state:
     st.session_state.frontier = set()
     st.session_state.img_placeholder = None
     st.session_state.current_algorithm = None
+    st.session_state.start_pos = (0, 0)
+    st.session_state.end_pos = (HEIGHT-1, WIDTH-1)
+    st.session_state.start_y = 0
+    st.session_state.start_x = 0
+    st.session_state.end_y = HEIGHT-1
+    st.session_state.end_x = WIDTH-1
 
 def generate_maze():
     maze = np.ones((HEIGHT, WIDTH, 3), dtype=np.uint8) * 255
@@ -37,8 +42,9 @@ def generate_maze():
             if random.random() < 0.3:  # 30% obstáculos
                 maze[i, j] = BLACK
     
-    maze[0, 0] = WHITE
-    maze[HEIGHT-1, WIDTH-1] = WHITE
+    # Garantir que as posições iniciais e finais estejam livres
+    maze[st.session_state.start_pos] = WHITE
+    maze[st.session_state.end_pos] = WHITE
     
     st.session_state.bfs_path = None
     st.session_state.dfs_path = None
@@ -60,7 +66,6 @@ def render_maze(maze, start, end, explored=None, frontier=None, bfs_path=None, d
             if (y, x) != start and (y, x) != end:
                 display_maze[y, x] = YELLOW
     
-    
     if dfs_path:
         for y, x in dfs_path:
             if (y, x) != start and (y, x) != end:
@@ -70,12 +75,38 @@ def render_maze(maze, start, end, explored=None, frontier=None, bfs_path=None, d
             if (y, x) != start and (y, x) != end:
                 display_maze[y, x] = GREEN
     
+    # Aplicar cores para início e fim
     display_maze[start[0], start[1]] = RED
     display_maze[end[0], end[1]] = BLUE
     
     img = Image.fromarray(display_maze, mode="RGB")
     img = img.resize((600, 600), resample=Image.NEAREST)
     return img
+
+def update_positions():
+    # Atualiza as posições apenas se os valores forem diferentes
+    new_start_pos = (st.session_state.start_y, st.session_state.start_x)
+    new_end_pos = (st.session_state.end_y, st.session_state.end_x)
+    
+    if new_start_pos != st.session_state.start_pos:
+        st.session_state.start_pos = new_start_pos
+    
+    if new_end_pos != st.session_state.end_pos:
+        st.session_state.end_pos = new_end_pos
+    
+    render_and_display()
+
+def render_and_display():
+    img = render_maze(
+        st.session_state.maze, 
+        st.session_state.start_pos, 
+        st.session_state.end_pos, 
+        st.session_state.explored, 
+        st.session_state.frontier,
+        st.session_state.bfs_path,
+        st.session_state.dfs_path
+    )
+    st.session_state.img_placeholder.image(img, caption="Labirinto")
 
 def is_accessible(maze, start, end):
     visited = set()
@@ -192,89 +223,65 @@ def build_graph(maze):
             graph[(i, j)] = neighbors
     return graph
 
-# Interface principal
-if "maze" not in st.session_state:
-    st.session_state.maze = generate_maze()
-
-# Criar layout com duas colunas
+# Layout principal
 col1, col2 = st.columns([1, 1.5])
 
 with col1:
-    # Área do labirinto
-    if st.session_state.img_placeholder is None:
-        st.session_state.img_placeholder = st.empty()
+    # Inicialização do labirinto
+    if "maze" not in st.session_state:
+        st.session_state.maze = generate_maze()
     
     # Renderização inicial
-    start_pos = (0, 0)
-    end_pos = (HEIGHT-1, WIDTH-1)
-    initial_img = render_maze(
-        st.session_state.maze, 
-        start_pos, 
-        end_pos, 
-        st.session_state.explored, 
-        st.session_state.frontier,
-        st.session_state.bfs_path,
-        st.session_state.dfs_path
-    )
-    st.session_state.img_placeholder.image(initial_img, caption="Labirinto")
+    st.session_state.img_placeholder = st.empty()
+    render_and_display()
 
 with col2:
-    # Controles
     st.header("Controles")
     
+    # Configurações de posição
+    st.subheader("Posições")
+    st.number_input("Linha inicial", min_value=0, max_value=HEIGHT-1, 
+                  value=st.session_state.start_y, key="start_y",
+                  on_change=update_positions)
+    st.number_input("Coluna inicial", min_value=0, max_value=WIDTH-1, 
+                  value=st.session_state.start_x, key="start_x",
+                  on_change=update_positions)
+    st.number_input("Linha final", min_value=0, max_value=HEIGHT-1, 
+                  value=st.session_state.end_y, key="end_y",
+                  on_change=update_positions)
+    st.number_input("Coluna final", min_value=0, max_value=WIDTH-1, 
+                  value=st.session_state.end_x, key="end_x",
+                  on_change=update_positions)
+    
+    # Configurações de velocidade
+    st.subheader("Configurações")
     speed = st.slider("Velocidade da animação (segundos por passo)", 0.01, 1.0, 0.1, 0.01)
     
-    st.subheader("Posições")
-    start_y = st.number_input("Linha inicial", min_value=0, max_value=HEIGHT-1, value=0)
-    start_x = st.number_input("Coluna inicial", min_value=0, max_value=WIDTH-1, value=0)
-    end_y = st.number_input("Linha final", min_value=0, max_value=HEIGHT-1, value=HEIGHT-1)
-    end_x = st.number_input("Coluna final", min_value=0, max_value=WIDTH-1, value=WIDTH-1)
-    
-    start_pos = (start_y, start_x)
-    end_pos = (end_y, end_x)
-    
+    # Botões de controle
     st.subheader("Ações")
     if st.button("🔍 Resolver com BFS"):
-        if not is_accessible(st.session_state.maze, start_pos, end_pos):
+        if not is_accessible(st.session_state.maze, st.session_state.start_pos, st.session_state.end_pos):
             st.error("Ponto final não acessível!")
         else:
-            path = solve_bfs(start_pos, end_pos, speed)
+            path = solve_bfs(st.session_state.start_pos, st.session_state.end_pos, speed)
             if path:
-                final_img = render_maze(
-                    st.session_state.maze, 
-                    start_pos, 
-                    end_pos, 
-                    st.session_state.explored, 
-                    set(),
-                    st.session_state.bfs_path,
-                    st.session_state.dfs_path
-                )
-                st.session_state.img_placeholder.image(final_img, caption="Solução com BFS")
+                render_and_display()
             else:
                 st.error("Caminho não encontrado!")
-    
+
     if st.button("🔍 Resolver com DFS"):
-        if not is_accessible(st.session_state.maze, start_pos, end_pos):
+        if not is_accessible(st.session_state.maze, st.session_state.start_pos, st.session_state.end_pos):
             st.error("Ponto final não acessível!")
         else:
-            path = solve_dfs(start_pos, end_pos, speed)
+            path = solve_dfs(st.session_state.start_pos, st.session_state.end_pos, speed)
             if path:
-                final_img = render_maze(
-                    st.session_state.maze, 
-                    start_pos, 
-                    end_pos, 
-                    st.session_state.explored, 
-                    set(),
-                    st.session_state.bfs_path,
-                    st.session_state.dfs_path
-                )
-                st.session_state.img_placeholder.image(final_img, caption="Solução com DFS")
+                render_and_display()
             else:
                 st.error("Caminho não encontrado!")
-    
+
     if st.button("🔄 Novo Labirinto"):
         st.session_state.maze = generate_maze()
-        st.rerun()
+        render_and_display()
     
     # Legenda
     st.subheader("Legenda")
