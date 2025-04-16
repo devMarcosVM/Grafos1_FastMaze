@@ -60,15 +60,15 @@ def render_maze(maze, start, end, explored=None, frontier=None, bfs_path=None, d
             if (y, x) != start and (y, x) != end:
                 display_maze[y, x] = YELLOW
     
-    if bfs_path:
-        for y, x in bfs_path:
-            if (y, x) != start and (y, x) != end:
-                display_maze[y, x] = GREEN
     
     if dfs_path:
         for y, x in dfs_path:
             if (y, x) != start and (y, x) != end:
                 display_maze[y, x] = PURPLE
+    if bfs_path:
+        for y, x in bfs_path:
+            if (y, x) != start and (y, x) != end:
+                display_maze[y, x] = GREEN
     
     display_maze[start[0], start[1]] = RED
     display_maze[end[0], end[1]] = BLUE
