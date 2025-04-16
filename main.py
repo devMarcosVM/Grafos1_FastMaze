@@ -5,7 +5,9 @@ import time
 import random
 from PIL import Image
 
+st.set_page_config(layout="wide")
 st.title("🧭 Labirinto com BFS e DFS - Comparação")
+
 
 # Configurações
 HEIGHT, WIDTH = 25, 25
@@ -25,7 +27,7 @@ if "maze" not in st.session_state:
     st.session_state.dfs_path = None
     st.session_state.explored = set()
     st.session_state.frontier = set()
-    st.session_state.img_placeholder = st.empty()
+    st.session_state.img_placeholder = None
     st.session_state.current_algorithm = None
 
 def generate_maze():
@@ -194,36 +196,44 @@ def build_graph(maze):
 if "maze" not in st.session_state:
     st.session_state.maze = generate_maze()
 
-# Controles
-speed = st.slider("Velocidade da animação (segundos por passo)", 0.01, 1.0, 0.1, 0.01)
+# Criar layout com duas colunas
+col1, col2 = st.columns([1, 1.5])
 
-col1, col2 = st.columns(2)
 with col1:
-    start_y = st.number_input("Linha inicial", min_value=0, max_value=HEIGHT-1, value=0)
-    start_x = st.number_input("Coluna inicial", min_value=0, max_value=WIDTH-1, value=0)
+    # Área do labirinto
+    if st.session_state.img_placeholder is None:
+        st.session_state.img_placeholder = st.empty()
+    
+    # Renderização inicial
+    start_pos = (0, 0)
+    end_pos = (HEIGHT-1, WIDTH-1)
+    initial_img = render_maze(
+        st.session_state.maze, 
+        start_pos, 
+        end_pos, 
+        st.session_state.explored, 
+        st.session_state.frontier,
+        st.session_state.bfs_path,
+        st.session_state.dfs_path
+    )
+    st.session_state.img_placeholder.image(initial_img, caption="Labirinto")
 
 with col2:
+    # Controles
+    st.header("Controles")
+    
+    speed = st.slider("Velocidade da animação (segundos por passo)", 0.01, 1.0, 0.1, 0.01)
+    
+    st.subheader("Posições")
+    start_y = st.number_input("Linha inicial", min_value=0, max_value=HEIGHT-1, value=0)
+    start_x = st.number_input("Coluna inicial", min_value=0, max_value=WIDTH-1, value=0)
     end_y = st.number_input("Linha final", min_value=0, max_value=HEIGHT-1, value=HEIGHT-1)
     end_x = st.number_input("Coluna final", min_value=0, max_value=WIDTH-1, value=WIDTH-1)
-
-start_pos = (start_y, start_x)
-end_pos = (end_y, end_x)
-
-# Renderização inicial
-initial_img = render_maze(
-    st.session_state.maze, 
-    start_pos, 
-    end_pos, 
-    st.session_state.explored, 
-    st.session_state.frontier,
-    st.session_state.bfs_path,
-    st.session_state.dfs_path
-)
-st.session_state.img_placeholder.image(initial_img, caption="Labirinto")
-
-# Botões de controle
-col1, col2, col3 = st.columns(3)
-with col1:
+    
+    start_pos = (start_y, start_x)
+    end_pos = (end_y, end_x)
+    
+    st.subheader("Ações")
     if st.button("🔍 Resolver com BFS"):
         if not is_accessible(st.session_state.maze, start_pos, end_pos):
             st.error("Ponto final não acessível!")
@@ -242,8 +252,7 @@ with col1:
                 st.session_state.img_placeholder.image(final_img, caption="Solução com BFS")
             else:
                 st.error("Caminho não encontrado!")
-
-with col2:
+    
     if st.button("🔍 Resolver com DFS"):
         if not is_accessible(st.session_state.maze, start_pos, end_pos):
             st.error("Ponto final não acessível!")
@@ -262,20 +271,19 @@ with col2:
                 st.session_state.img_placeholder.image(final_img, caption="Solução com DFS")
             else:
                 st.error("Caminho não encontrado!")
-
-with col3:
+    
     if st.button("🔄 Novo Labirinto"):
         st.session_state.maze = generate_maze()
         st.rerun()
-
-# Legenda
-st.markdown("""
-**Legenda:**
-- 🔴 Vermelho: Ponto de início
-- 🔵 Azul: Ponto final
-- 🟡 Amarelo: Células exploradas
-- ⚪ Cinza: Fronteira (próximas a explorar)
-- 🟢 Verde: Caminho BFS
-- 🟣 Roxo: Caminho DFS
-- ⬛ Preto: Obstáculos
-""")
+    
+    # Legenda
+    st.subheader("Legenda")
+    st.markdown("""
+    - 🔴 Vermelho: Ponto de início
+    - 🔵 Azul: Ponto final
+    - 🟡 Amarelo: Células exploradas
+    - ⚪ Cinza: Fronteira (próximas a explorar)
+    - 🟢 Verde: Caminho BFS
+    - 🟣 Roxo: Caminho DFS
+    - ⬛ Preto: Obstáculos
+    """)
