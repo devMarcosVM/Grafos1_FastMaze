@@ -234,6 +234,17 @@ with col1:
     # Renderização inicial
     st.session_state.img_placeholder = st.empty()
     render_and_display()
+        # Legenda
+    st.subheader("Legenda")
+    st.markdown("""
+    - 🔴 Vermelho: Ponto de início
+    - 🔵 Azul: Ponto final
+    - 🟡 Amarelo: Células exploradas
+    - ⚪ Cinza: Fronteira (próximas a explorar)
+    - 🟢 Verde: Caminho BFS
+    - 🟣 Roxo: Caminho DFS
+    - ⬛ Preto: Obstáculos
+    """)
 
 with col2:
     st.header("Controles")
@@ -282,15 +293,3 @@ with col2:
     if st.button("🔄 Novo Labirinto"):
         st.session_state.maze = generate_maze()
         render_and_display()
-    
-    # Legenda
-    st.subheader("Legenda")
-    st.markdown("""
-    - 🔴 Vermelho: Ponto de início
-    - 🔵 Azul: Ponto final
-    - 🟡 Amarelo: Células exploradas
-    - ⚪ Cinza: Fronteira (próximas a explorar)
-    - 🟢 Verde: Caminho BFS
-    - 🟣 Roxo: Caminho DFS
-    - ⬛ Preto: Obstáculos
-    """)
