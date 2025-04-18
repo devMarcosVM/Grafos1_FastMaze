@@ -9,6 +9,9 @@
 | 22/2021890  |  Manuella Magalhães Valadares |
 | 22/2021906  |  Marcos Vieira Marinho |
 
+## Link do vídeo de apresentação do projeto 
+https://youtu.be/wguxKFMg7bg
+
 ## ℹ️ Sobre o Fast Maze
 Fast Maze é um jogo de labirinto que permite visualizar e comparar o desempenho dos algoritmos BFS (Busca em Largura) e DFS (Busca em Profundidade) na busca por um caminho até o alvo.
 
