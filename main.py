@@ -252,17 +252,14 @@ with col2:
     # Configurações de posição
     st.subheader("Posições")
     st.number_input("Linha inicial", min_value=0, max_value=HEIGHT-1, 
-                  value=st.session_state.start_y, key="start_y",
-                  on_change=update_positions)
+                    key="start_y", on_change=update_positions)
     st.number_input("Coluna inicial", min_value=0, max_value=WIDTH-1, 
-                  value=st.session_state.start_x, key="start_x",
-                  on_change=update_positions)
+                    key="start_x", on_change=update_positions)
     st.number_input("Linha final", min_value=0, max_value=HEIGHT-1, 
-                  value=st.session_state.end_y, key="end_y",
-                  on_change=update_positions)
+                    key="end_y", on_change=update_positions)
     st.number_input("Coluna final", min_value=0, max_value=WIDTH-1, 
-                  value=st.session_state.end_x, key="end_x",
-                  on_change=update_positions)
+                    key="end_x", on_change=update_positions)
+
     
     # Configurações de velocidade
     st.subheader("Configurações")
